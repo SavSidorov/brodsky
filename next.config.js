@@ -1,4 +1,16 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
+const nextConfig = {
+	env: {
+		OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+	},
+	webpack: (config) => {
+		config.module.rules.push({
+			test: /\.node$/,
+			use: 'node-loader',
+		});
 
-module.exports = nextConfig
+		return config;
+	},
+};
+
+module.exports = nextConfig;
