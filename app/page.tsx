@@ -171,7 +171,7 @@ export default function Home() {
 							value={value}
 							onChange={(e) => setValue(e.target.value)}
 							placeholder={"What's on your mind?"}
-							autoSize={{ minRows: 3, maxRows: 10 }}
+							autoSize={{ minRows: 5, maxRows: 10 }}
 						/>
 					</div>
 

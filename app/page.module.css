@@ -28,6 +28,7 @@
 .top h1 {
 	font-weight: 200;
 	font-size: 1.5rem;
+	user-select: none;
 }
 
 .center {
@@ -69,7 +70,7 @@
 	justify-content: space-between;
 	align-items: center;
 	min-width: 300px;
-	padding: 15px 0;
+	padding: 25px 0;
 
 	border-radius: 10px;
 	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -85,8 +86,8 @@
 
 .centerRight > .similarNotes > * {
 	min-width: 200px;
-	min-height: 100px;
-	margin: 1rem 0;
+	min-height: 75px;
+	margin: 25px 0;
 }
 
 .centerRight > .similarNotes > p {
