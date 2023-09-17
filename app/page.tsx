@@ -1,5 +1,10 @@
 'use client';
 
+import {
+	cosineSimilarity,
+	downloadAllNotes,
+	generateEmbedding,
+} from '@/app/helpers';
 import { Note } from '@/app/types';
 import {
 	CheckOutlined,
@@ -10,11 +15,6 @@ import {
 } from '@ant-design/icons';
 import { Button, Input, Modal, message } from 'antd';
 import { useEffect, useState } from 'react';
-import {
-	cosineSimilarity,
-	downloadAllNotes,
-	generateEmbedding,
-} from '@/app/helpers';
 import styles from './page.module.css';
 
 const { TextArea } = Input;
@@ -24,6 +24,27 @@ export default function Home() {
 	const [currentNote, setCurrentNote] = useState<Note | null>(null);
 	const [similarNotes, setSimilarNotes] = useState<Note[]>([]);
 	const [value, setValue] = useState('');
+	const [screenWidth, setScreenWidth] = useState(0);
+
+	const mobileBreakpoint = 1000;
+
+	useEffect(() => {
+		// This function will run whenever the window size changes
+		const handleResize = () => {
+			setScreenWidth(window.innerWidth);
+		};
+
+		// Run the function once to get the initial window size
+		handleResize();
+
+		// Subscribe to window resize events
+		window.addEventListener('resize', handleResize);
+
+		// Cleanup function: remove the event listener when the component unmounts
+		return () => {
+			window.removeEventListener('resize', handleResize);
+		};
+	}, []); // No dependencies so the effect only runs once on mount and on unmount
 
 	const fetchAllNotes = async () => {
 		const res = await fetch('/api/getNotes');
@@ -42,11 +63,6 @@ export default function Home() {
 		setCurrentNote(selectedNote);
 		setValue(selectedNote?.text || '');
 	};
-
-	// Set a random note on page load, or if notes have changed
-	useEffect(() => {
-		setRandomNote(notes);
-	}, [notes]);
 
 	// Called when the plus button is pressed
 	const createNewNote = () => {
@@ -85,8 +101,9 @@ export default function Home() {
 	};
 
 	// Called when the delete button is pressed
-	const handleDelete = () => {
-		if (currentNote && currentNote.id) {
+	const handleDelete = (id?: string) => {
+		const noteId = id || currentNote?.id;
+		if (noteId) {
 			Modal.confirm({
 				title: 'Are you sure you want to delete this note?',
 				centered: true,
@@ -96,13 +113,24 @@ export default function Home() {
 						headers: {
 							'Content-Type': 'application/json',
 						},
-						body: JSON.stringify({ id: currentNote.id }),
+						body: JSON.stringify({ id: noteId }),
 					});
 
-					// After removing, re-fetch the messages. In a real-world scenario, you might use SWR or React Query to optimize this.
 					const res = await fetch('/api/getNotes');
 					const data = await res.json();
-					setNotes(data.data);
+
+					// Set a random note if the deleted note was the current note
+					if (id == currentNote?.id) {
+						setNotes(data.data);
+						setRandomNote(notes);
+					} else {
+						setNotes(data.data);
+					}
+
+					// Remove the deleted note from the similar notes list
+					setSimilarNotes((prevSimilarNotes) =>
+						prevSimilarNotes.filter((note) => note.id !== noteId)
+					);
 
 					message.success('Note deleted successfully!');
 				},
@@ -157,7 +185,9 @@ export default function Home() {
 			</div>
 
 			<div className={styles.center}>
-				<div className={styles.centerLeft}></div>
+				{screenWidth > mobileBreakpoint && (
+					<div className={styles.centerLeft}></div>
+				)}
 
 				<div className={styles.createNote}>
 					<div className={styles.new}>
@@ -171,7 +201,7 @@ export default function Home() {
 							value={value}
 							onChange={(e) => setValue(e.target.value)}
 							placeholder={"What's on your mind?"}
-							autoSize={{ minRows: 5, maxRows: 10 }}
+							autoSize={{ minRows: 6, maxRows: 10 }}
 						/>
 					</div>
 
@@ -180,7 +210,7 @@ export default function Home() {
 							<RedoOutlined />
 						</Button>
 
-						<Button type='text' onClick={handleDelete}>
+						<Button type='text' onClick={() => handleDelete(currentNote?.id)}>
 							<DeleteOutlined />
 						</Button>
 
@@ -193,31 +223,47 @@ export default function Home() {
 					</div>
 				</div>
 
-				<div className={styles.centerRight}>
-					<Button
-						type='default'
-						onClick={() => {
-							handleFindSimilar(value);
-						}}
-					>
-						Find Similar Notes
-					</Button>
-					<div className={styles.similarNotes}>
-						{similarNotes.map((note) => (
-							<Button
-								type='text'
-								onClick={() => {
-									setValue(value + '\n\n' + note.text);
-								}}
-								key={note.id}
-							>
-								{note.text.length > 100
-									? note.text.substring(0, 10) + '...'
-									: note.text}
-							</Button>
-						))}
+				{screenWidth > mobileBreakpoint && (
+					<div className={styles.centerRight}>
+						<Button
+							type='default'
+							onClick={() => {
+								handleFindSimilar(value);
+							}}
+						>
+							Find Similar Notes
+						</Button>
+						<div className={styles.similarNotes}>
+							{similarNotes.map((note) => (
+								<div
+									className={styles.similarNote}
+									key={note.id}
+									onClick={() => {
+										navigator.clipboard.writeText(note.text);
+										message.success('Copied to clipboard!');
+									}}
+								>
+									<div className={styles.noteHeader}>
+										<Button
+											type='text'
+											onClick={(e) => {
+												e.stopPropagation();
+												handleDelete(note.id);
+											}}
+										>
+											<DeleteOutlined />
+										</Button>
+									</div>
+									<div className={styles.noteText}>
+										{note.text.length > 100
+											? note.text.substring(0, 100) + '...'
+											: note.text}
+									</div>
+								</div>
+							))}
+						</div>
 					</div>
-				</div>
+				)}
 			</div>
 
 			<div className={styles.bottom}></div>
