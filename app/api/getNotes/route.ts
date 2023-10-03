@@ -11,7 +11,12 @@ export async function GET() {
 			id: doc.id,
 			...doc.data(),
 		}));
-		return NextResponse.json({ data });
+
+		// Set cache headers to avoid caching on Vercel
+		const response = NextResponse.json({ data });
+		response.headers.set('Cache-Control', 's-maxage=1, stale-while-revalidate');
+
+		return response;
 	} catch (error) {
 		console.error('Error accessing Firestore:', error);
 		return NextResponse.error;
