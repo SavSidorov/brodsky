@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+
+const withPWA = require('next-pwa')({
+	dest: 'public',
+});
+
+module.exports = withPWA({
 	env: {
 		OPENAI_API_KEY: process.env.OPENAI_API_KEY,
 	},
@@ -11,6 +16,4 @@ const nextConfig = {
 
 		return config;
 	},
-};
-
-module.exports = nextConfig;
+});

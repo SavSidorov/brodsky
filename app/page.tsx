@@ -13,7 +13,7 @@ import {
 	PlusOutlined,
 	RedoOutlined,
 } from '@ant-design/icons';
-import { Button, Input, Modal, message } from 'antd';
+import { Button, Input, Modal, Tooltip, message } from 'antd';
 import { useEffect, useState } from 'react';
 import styles from './page.module.css';
 
@@ -50,6 +50,8 @@ export default function Home() {
 		const res = await fetch('/api/getNotes');
 		const data = await res.json();
 		setNotes(data.data);
+
+		console.log('Fetched notes:', data.data); //TODO: Delete
 	};
 
 	// Fetch all notes on page load
@@ -191,9 +193,11 @@ export default function Home() {
 
 				<div className={styles.createNote}>
 					<div className={styles.new}>
-						<Button type='text' onClick={createNewNote}>
-							<PlusOutlined />
-						</Button>
+						<Tooltip title='New'>
+							<Button type='text' onClick={createNewNote}>
+								<PlusOutlined />
+							</Button>
+						</Tooltip>
 					</div>
 
 					<div className={styles.textInput}>
@@ -206,20 +210,26 @@ export default function Home() {
 					</div>
 
 					<div className={styles.controls}>
-						<Button type='text' onClick={() => setRandomNote(notes)}>
-							<RedoOutlined />
-						</Button>
+						<Tooltip title='Random' placement='bottom'>
+							<Button type='text' onClick={() => setRandomNote(notes)}>
+								<RedoOutlined />
+							</Button>
+						</Tooltip>
 
-						<Button type='text' onClick={() => handleDelete(currentNote?.id)}>
-							<DeleteOutlined />
-						</Button>
+						<Tooltip title='Delete' placement='bottom'>
+							<Button type='text' onClick={() => handleDelete(currentNote?.id)}>
+								<DeleteOutlined />
+							</Button>
+						</Tooltip>
 
-						<Button
-							type='text'
-							onClick={() => handleSubmit(value ? value : '')}
-						>
-							<CheckOutlined />
-						</Button>
+						<Tooltip title='Save' placement='bottom'>
+							<Button
+								type='text'
+								onClick={() => handleSubmit(value ? value : '')}
+							>
+								<CheckOutlined />
+							</Button>
+						</Tooltip>
 					</div>
 				</div>
 
