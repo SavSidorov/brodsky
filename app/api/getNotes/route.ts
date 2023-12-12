@@ -14,7 +14,7 @@ export async function GET() {
 
 		// Set cache headers to avoid caching on Vercel
 		const response = NextResponse.json({ data });
-		response.headers.set('Cache-Control', 's-maxage=1, stale-while-revalidate');
+		//response.headers.set('Cache-Control', 's-maxage=1, stale-while-revalidate');
 
 		return response;
 	} catch (error) {
