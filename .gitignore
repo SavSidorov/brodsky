@@ -41,3 +41,6 @@ next-env.d.ts
 **/public/sw.js.map
 **/public/workbox-*.js.map
 **/public/worker-*.js.map
+
+# Firebase Admin SDK
+brodsky-b0951-firebase-adminsdk-824ba-e6f9d337a3.json
