@@ -8,6 +8,7 @@ import {
 import { Note } from '@/app/types';
 import {
 	CheckOutlined,
+	CopyOutlined,
 	DeleteOutlined,
 	DownloadOutlined,
 	PlusOutlined,
@@ -15,6 +16,7 @@ import {
 } from '@ant-design/icons';
 import { Button, Input, Modal, Tooltip, message } from 'antd';
 import { useEffect, useState } from 'react';
+import { Fade } from 'react-awesome-reveal';
 import styles from './page.module.css';
 
 const { TextArea } = Input;
@@ -50,8 +52,6 @@ export default function Home() {
 		const res = await fetch('/api/getNotes');
 		const data = await res.json();
 		setNotes(data.data);
-
-		console.log('Fetched notes:', data.data); //TODO: Delete
 	};
 
 	// Fetch all notes on page load
@@ -178,105 +178,130 @@ export default function Home() {
 
 	return (
 		<main className={styles.main}>
-			<div className={styles.top}>
-				<h1>brodsky</h1>
-				<Button type='default' onClick={() => downloadAllNotes(notes)}>
-					<DownloadOutlined />
-					Download All
-				</Button>
-			</div>
-
-			<div className={styles.center}>
-				{screenWidth > mobileBreakpoint && (
-					<div className={styles.centerLeft}></div>
-				)}
-
-				<div className={styles.createNote}>
-					<div className={styles.new}>
-						<Tooltip title='New'>
-							<Button type='text' onClick={createNewNote}>
-								<PlusOutlined />
-							</Button>
-						</Tooltip>
-					</div>
-
-					<div className={styles.textInput}>
-						<TextArea
-							value={value}
-							onChange={(e) => setValue(e.target.value)}
-							placeholder={"What's on your mind?"}
-							autoSize={{ minRows: 6, maxRows: 10 }}
-						/>
-					</div>
-
-					<div className={styles.controls}>
-						<Tooltip title='Random' placement='bottom'>
-							<Button type='text' onClick={() => setRandomNote(notes)}>
-								<RedoOutlined />
-							</Button>
-						</Tooltip>
-
-						<Tooltip title='Delete' placement='bottom'>
-							<Button type='text' onClick={() => handleDelete(currentNote?.id)}>
-								<DeleteOutlined />
-							</Button>
-						</Tooltip>
-
-						<Tooltip title='Save' placement='bottom'>
-							<Button
-								type='text'
-								onClick={() => handleSubmit(value ? value : '')}
-							>
-								<CheckOutlined />
-							</Button>
-						</Tooltip>
-					</div>
+			<Fade triggerOnce delay={500} duration={1000}>
+				<div className={styles.top}>
+					<h1>brodsky</h1>
+					<Button type='default' onClick={() => downloadAllNotes(notes)}>
+						<DownloadOutlined />
+						Download All
+					</Button>
 				</div>
 
-				{screenWidth > mobileBreakpoint && (
-					<div className={styles.centerRight}>
-						<Button
-							type='default'
-							onClick={() => {
-								handleFindSimilar(value);
-							}}
-						>
-							Find Similar Notes
-						</Button>
-						<div className={styles.similarNotes}>
-							{similarNotes.map((note) => (
-								<div
-									className={styles.similarNote}
-									key={note.id}
-									onClick={() => {
-										navigator.clipboard.writeText(note.text);
-										message.success('Copied to clipboard!');
-									}}
+				<div className={styles.center}>
+					{screenWidth > mobileBreakpoint && (
+						<div className={styles.centerLeft}></div>
+					)}
+
+					<div className={styles.createNote}>
+						<div className={styles.new}>
+							<Tooltip title='New'>
+								<Button type='text' onClick={createNewNote}>
+									<PlusOutlined />
+								</Button>
+							</Tooltip>
+						</div>
+
+						<div className={styles.textInput}>
+							<TextArea
+								value={value}
+								onChange={(e) => setValue(e.target.value)}
+								placeholder={"What's on your mind?"}
+								autoSize={{ minRows: 6, maxRows: 10 }}
+							/>
+						</div>
+
+						<div className={styles.controls}>
+							<Tooltip title='Random' placement='bottom'>
+								<Button type='text' onClick={() => setRandomNote(notes)}>
+									<RedoOutlined />
+								</Button>
+							</Tooltip>
+
+							<Tooltip title='Delete' placement='bottom'>
+								<Button
+									type='text'
+									onClick={() => handleDelete(currentNote?.id)}
 								>
-									<div className={styles.noteHeader}>
-										<Button
-											type='text'
-											onClick={(e) => {
-												e.stopPropagation();
-												handleDelete(note.id);
-											}}
-										>
-											<DeleteOutlined />
-										</Button>
-									</div>
-									<div className={styles.noteText}>
-										{note.text.length > 100
-											? note.text.substring(0, 100) + '...'
-											: note.text}
-									</div>
-								</div>
-							))}
+									<DeleteOutlined />
+								</Button>
+							</Tooltip>
+
+							<Tooltip title='Save' placement='bottom'>
+								<Button
+									type='text'
+									onClick={() => handleSubmit(value ? value : '')}
+								>
+									<CheckOutlined />
+								</Button>
+							</Tooltip>
 						</div>
 					</div>
-				)}
-			</div>
 
-			<div className={styles.bottom}></div>
+					{screenWidth > mobileBreakpoint && (
+						<div className={styles.centerRight}>
+							<Button
+								type='default'
+								onClick={() => {
+									handleFindSimilar(value);
+								}}
+							>
+								Find Similar Notes
+							</Button>
+							<div className={styles.similarNotes}>
+								{similarNotes.map((note) => (
+									<div
+										className={styles.similarNote}
+										key={note.id}
+										onClick={async () => {
+											// Save current note before switching
+											await handleSubmit(value ? value : '');
+											// Set the current note to the selected note
+											setCurrentNote(note);
+											setValue(note.text);
+											// Clear the similar notes list
+											setSimilarNotes([]);
+										}}
+									>
+										<div className={styles.noteHeader}>
+											<Tooltip title='Copy' placement='bottom'>
+												<Button
+													type='text'
+													onClick={(e) => {
+														e.stopPropagation();
+														navigator.clipboard.writeText(note.text);
+														message.success('Copied to clipboard!');
+													}}
+												>
+													<CopyOutlined />
+												</Button>
+											</Tooltip>
+
+											<Tooltip title='Delete' placement='bottom'>
+												<Button
+													type='text'
+													onClick={(e) => {
+														e.stopPropagation();
+														handleDelete(note.id);
+													}}
+												>
+													<DeleteOutlined />
+												</Button>
+											</Tooltip>
+										</div>
+										<div className={styles.noteText}>
+											{note.text.length > 100
+												? note.text.substring(0, 100) + '...'
+												: note.text}
+										</div>
+									</div>
+								))}
+							</div>
+						</div>
+					)}
+				</div>
+
+				<div className={styles.bottom}></div>
+			</Fade>
 		</main>
 	);
 }

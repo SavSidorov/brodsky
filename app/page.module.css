@@ -87,17 +87,34 @@
 .similarNote {
 	position: relative;
 	width: 225px;
-	min-height: 90px;
+	min-height: 150px;
 	margin-top: 25px;
 	padding: 5px;
 	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 	border-radius: 4px;
 	cursor: pointer;
+	overflow: hidden;
+}
+
+.similarNote::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background: linear-gradient(to top, white, transparent);
+	pointer-events: none;
 }
 
 .noteHeader {
 	display: flex;
 	justify-content: flex-end;
+}
+
+.noteHeader > Button {
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
 }
 
 .similarNote > .noteText {
